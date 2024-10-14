@@ -5,33 +5,30 @@ import { useState, useEffect } from "react";
 type User = {
   id: number;
   name: string;
+  numberPeople: number;
+  waitStatus: boolean;
   arrivalTime: Date;
 };
 
 export default function Home() {
   const [users, setUsers] = useState<User[]>([]);
-  const [newUserName, setNewUserName] = useState("");
+  const [newUserName, setNewUserName] = useState<string>("");
   const [waitTime, setWaitTime] = useState<number | null>(null);
 
-  useEffect(() => {
-    fetchUsers();
-    fetchWaitTime();
-  }, []);
-
   const fetchUsers = async () => {
-    const res = await fetch("/api/users");
+    const res = await fetch("http://localhost:8080/api/users");
     const data = await res.json();
     setUsers(data);
   };
 
   const fetchWaitTime = async () => {
-    const res = await fetch("/api/wait-time");
+    const res = await fetch("http://localhost:8080/api/wait-time");
     const data = await res.json();
     setWaitTime(data.waitTime);
   };
 
   const addUser = async () => {
-    const res = await fetch("/api/users", {
+    const res = await fetch("http://localhost:8080/api/users", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -41,11 +38,12 @@ export default function Home() {
     if (res.ok) {
       setNewUserName("");
       fetchUsers();
+      fetchWaitTime();
     }
   };
 
   const deleteUser = async (id: number) => {
-    const res = await fetch("/api/users", {
+    const res = await fetch("http://localhost:8080/api/users", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -55,8 +53,14 @@ export default function Home() {
     if (res.ok) {
       const data = await res.json();
       setUsers(data);
+      fetchWaitTime();
     }
   };
+
+  useEffect(() => {
+    fetchUsers();
+    fetchWaitTime();
+  }, []);
 
   return (
     <div className="container mx-auto p-6 max-w-lg">
@@ -100,9 +104,18 @@ export default function Home() {
               className="flex justify-between items-center p-3 border rounded-lg shadow-sm"
             >
               <span className="font-medium text-gray-800">{user.name}</span>
+              <span className="font-medium text-gray-800">
+                {user.waitStatus ? "待ち" : "入店"}
+              </span>
+              <span className="font-medium text-gray-800">
+                {`${user.numberPeople}人`}
+              </span>
               <span className="text-gray-600">
                 {new Date(user.arrivalTime).toLocaleTimeString()}
               </span>
+              <button className="ml-4 bg-green-500 text-white p-2 rounded-lg">
+                入店
+              </button>
               <button
                 onClick={() => deleteUser(user.id)}
                 className="ml-4 bg-red-500 text-white p-2 rounded-lg"
