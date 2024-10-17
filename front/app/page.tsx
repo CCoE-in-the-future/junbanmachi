@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 
 type User = {
-  id: number;
+  id: string;
   name: string;
   numberPeople: number;
   waitStatus: boolean;
@@ -13,6 +13,9 @@ type User = {
 export default function Home() {
   const [users, setUsers] = useState<User[]>([]);
   const [newUserName, setNewUserName] = useState<string>("");
+  const [newUserNumberPeople, setNewUserNumberPeople] = useState<
+    number | string
+  >("");
   const [waitTime, setWaitTime] = useState<number | null>(null);
 
   const fetchUsers = async () => {
@@ -33,18 +36,37 @@ export default function Home() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name: newUserName }),
+      body: JSON.stringify({
+        name: newUserName,
+        numberPeople: newUserNumberPeople,
+      }),
     });
     if (res.ok) {
       setNewUserName("");
+      setNewUserNumberPeople("");
       fetchUsers();
       fetchWaitTime();
     }
   };
 
-  const deleteUser = async (id: number) => {
+  const deleteUser = async (id: string) => {
     const res = await fetch("http://localhost:8080/api/users", {
       method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setUsers(data);
+      fetchWaitTime();
+    }
+  };
+
+  const updateUser = async (id: string) => {
+    const res = await fetch("http://localhost:8080/api/users", {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
@@ -75,6 +97,14 @@ export default function Home() {
           onChange={(e) => setNewUserName(e.target.value)}
           placeholder="名前を入力"
           className="w-full p-3 border rounded-lg shadow-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        />
+        <input
+          type="number"
+          value={newUserNumberPeople}
+          onChange={(e) => setNewUserNumberPeople(Number(e.target.value))}
+          placeholder="人数を入力"
+          min="1"
+          className="w-full p-3 border rounded-lg shadow-sm mt-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <button
           onClick={addUser}
@@ -113,7 +143,10 @@ export default function Home() {
               <span className="text-gray-600">
                 {new Date(user.arrivalTime).toLocaleTimeString()}
               </span>
-              <button className="ml-4 bg-green-500 text-white p-2 rounded-lg">
+              <button
+                onClick={() => updateUser(user.id)}
+                className="ml-4 bg-green-500 text-white p-2 rounded-lg"
+              >
                 入店
               </button>
               <button
