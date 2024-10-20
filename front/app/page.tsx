@@ -21,7 +21,17 @@ export default function Home() {
   const fetchUsers = async () => {
     const res = await fetch("http://localhost:8080/api/users");
     const data = await res.json();
-    setUsers(data);
+
+    const sortedData = data
+      .map((user: User) => ({
+        ...user,
+        arrivalTime: new Date(user.arrivalTime),
+      }))
+      .sort(
+        (a: User, b: User) => a.arrivalTime.getTime() - b.arrivalTime.getTime()
+      );
+
+    setUsers(sortedData);
   };
 
   const fetchWaitTime = async () => {
@@ -58,8 +68,7 @@ export default function Home() {
       body: JSON.stringify({ id }),
     });
     if (res.ok) {
-      const data = await res.json();
-      setUsers(data);
+      fetchUsers();
       fetchWaitTime();
     }
   };
@@ -73,8 +82,7 @@ export default function Home() {
       body: JSON.stringify({ id }),
     });
     if (res.ok) {
-      const data = await res.json();
-      setUsers(data);
+      fetchUsers();
       fetchWaitTime();
     }
   };
