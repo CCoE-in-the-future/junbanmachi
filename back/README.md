@@ -1,6 +1,5 @@
 ## Getting Started
 
 ```
-npm install
-npm run dev
+go run main.go
 ```
