@@ -20,11 +20,10 @@ func main() {
 		Region: aws.String("ap-northeast-1"),
 	}))
 	db := dynamodb.New(sess)
-
-	// Repositories and Services
-	userRepo := repository.NewUserRepository(db, "junbanmachi-table")
-	userService := service.NewUserService(userRepo)
-	userHandler := handler.NewUserHandler(userService)
+	
+	var userRepo service.UserRepositoryInterface = repository.NewUserRepository(db, "junbanmachi-table")
+	var userService service.UserServiceInterface = service.NewUserService(userRepo) 
+	var userHandler handler.UserHandlerInterface = handler.NewUserHandler(userService) 
 
 	// Echo instance
 	e := echo.New()

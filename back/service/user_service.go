@@ -1,27 +1,33 @@
 package service
 
 import (
+	"back/entity"
+
 	"time"
 
-	"back/entity"
-	"back/repository"
+	"github.com/google/uuid"
 )
 
 
 type UserService struct {
-	userRepo *repository.UserRepository
+	userRepo UserRepositoryInterface
 }
 
-func NewUserService(ur *repository.UserRepository) *UserService {
+func NewUserService(ur UserRepositoryInterface) *UserService {
 	return &UserService{userRepo: ur}
 }
+
+func GenerateUUID() string {
+	return uuid.New().String()
+}
+
 
 func (s *UserService) GetAllUsers() ([]entity.User, error) {
 	return s.userRepo.GetAllUsers()
 }
 
 func (s *UserService) CreateUser(user entity.User) (entity.User, error) {
-	user.ID = repository.GenerateUUID()
+	user.ID = GenerateUUID()
 	user.WaitStatus = true
 	user.ArrivalTime = time.Now()
 	return s.userRepo.CreateUser(user)

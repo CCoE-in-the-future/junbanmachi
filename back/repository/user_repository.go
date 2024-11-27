@@ -6,7 +6,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	"github.com/google/uuid"
 )
 
 type UserRepository struct {
@@ -16,10 +15,6 @@ type UserRepository struct {
 
 func NewUserRepository(db *dynamodb.DynamoDB, tableName string) *UserRepository {
 	return &UserRepository{db: db, tableName: tableName}
-}
-
-func GenerateUUID() string {
-	return uuid.New().String()
 }
 
 func (r *UserRepository) GetAllUsers() ([]entity.User, error) {
