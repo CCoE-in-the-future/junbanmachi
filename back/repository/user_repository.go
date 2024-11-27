@@ -65,7 +65,7 @@ func (r *UserRepository) UpdateUserWaitStatus(id string, status bool) error {
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {S: &id},
 		},
-		UpdateExpression: aws.String("SET WaitStatus = :ws"),
+		UpdateExpression: aws.String("SET waitStatus = :ws"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":ws": {BOOL: &status},
 		},
@@ -77,7 +77,7 @@ func (r *UserRepository) UpdateUserWaitStatus(id string, status bool) error {
 func (r *UserRepository) GetWaitingUsers() ([]entity.User, error) {
 	input := &dynamodb.ScanInput{
 		TableName:        &r.tableName,
-		FilterExpression: aws.String("WaitStatus = :ws"),
+		FilterExpression: aws.String("waitStatus = :ws"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":ws": {BOOL: aws.Bool(true)},
 		},
