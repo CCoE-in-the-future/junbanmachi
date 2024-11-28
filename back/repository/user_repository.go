@@ -2,6 +2,7 @@ package repository
 
 import (
 	"back/entity"
+	"back/service"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -9,6 +10,7 @@ import (
 )
 
 type UserRepository struct {
+	service.UserRepositoryInterface
 	db        *dynamodb.DynamoDB
 	tableName string
 }
