@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"back/entity"
+	"back/dto"
 	"back/service"
 
 	"github.com/labstack/echo/v4"
@@ -28,7 +28,7 @@ func (h *UserHandler) GetAllUsers(c echo.Context) error {
 }
 
 func (h *UserHandler) CreateUser(c echo.Context) error {
-	var user entity.User
+	var user dto.UserDTO
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid input",
@@ -44,15 +44,13 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 }
 
 func (h *UserHandler) DeleteUser(c echo.Context) error {
-	var req struct {
-		ID string `json:"id"`
-	}
-	if err := c.Bind(&req); err != nil {
+	var user dto.UserDTO
+	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid input",
 		})
 	}
-	if err := h.userService.DeleteUser(req.ID); err != nil {
+	if err := h.userService.DeleteUser(user.ID); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "Failed to delete user",
 		})
@@ -63,15 +61,13 @@ func (h *UserHandler) DeleteUser(c echo.Context) error {
 }
 
 func (h *UserHandler) UpdateUserWaitStatus(c echo.Context) error {
-	var req struct {
-		ID string `json:"id"`
-	}
-	if err := c.Bind(&req); err != nil {
+	var user dto.UserDTO
+	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid input",
 		})
 	}
-	if err := h.userService.UpdateUserWaitStatus(req.ID); err != nil {
+	if err := h.userService.UpdateUserWaitStatus(user.ID); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "Failed to update user",
 		})

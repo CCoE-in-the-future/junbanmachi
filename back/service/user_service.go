@@ -1,6 +1,7 @@
 package service
 
 import (
+	"back/dto"
 	"back/entity"
 
 	"time"
@@ -22,15 +23,28 @@ func GenerateUUID() string {
 }
 
 
-func (s *UserService) GetAllUsers() ([]entity.User, error) {
-	return s.userRepo.GetAllUsers()
+func (s *UserService) GetAllUsers() ([]dto.UserDTO, error) {
+	users, _ := s.userRepo.GetAllUsers()
+
+	userDTOs := make([]dto.UserDTO, len(users))
+
+	for i, user := range users {
+		userDTOs[i] = s.convertToUserDTO(user) 
+	}
+
+	return userDTOs, nil
 }
 
-func (s *UserService) CreateUser(user entity.User) (entity.User, error) {
-	user.ID = GenerateUUID()
-	user.WaitStatus = true
-	user.ArrivalTime = time.Now()
-	return s.userRepo.CreateUser(user)
+func (s *UserService) CreateUser(userDTO dto.UserDTO) (dto.UserDTO, error) {
+	userDTO.ID = GenerateUUID()
+	userDTO.WaitStatus = true
+	userDTO.ArrivalTime = time.Now()
+
+	user := s.convertToUser(userDTO)
+	newUser, _ := s.userRepo.CreateUser(user)
+	newUserDTO := s.convertToUserDTO(newUser)
+
+	return newUserDTO, nil
 }
 
 
@@ -43,13 +57,20 @@ func (s *UserService) UpdateUserWaitStatus(id string) error {
 }
 
 func (s *UserService) GetEstimatedWaitTime() (int, error) {
-	users, err := s.userRepo.GetWaitingUsers()
-	if err != nil {
-		return 0, err
-	}
+	users, _ := s.userRepo.GetWaitingUsers()
 	waitTime := 0
 	for _, user := range users {
 		waitTime += user.NumberPeople * 15
 	}
 	return waitTime, nil
+}
+
+// DTO to entity
+func (s *UserService) convertToUser(user dto.UserDTO) entity.User {
+	return entity.NewUser(user.ID, user.Name, user.NumberPeople, user.WaitStatus, user.ArrivalTime)
+}
+
+// entity to DTO
+func (s *UserService) convertToUserDTO(user entity.User) dto.UserDTO {
+	return dto.NewUserDTO(user.ID, user.Name, user.NumberPeople, user.WaitStatus, user.ArrivalTime)
 }

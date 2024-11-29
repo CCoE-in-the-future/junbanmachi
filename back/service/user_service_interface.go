@@ -1,10 +1,10 @@
 package service
 
-import "back/entity"
+import "back/dto"
 
 type UserServiceInterface interface {
-	GetAllUsers() ([]entity.User, error)
-	CreateUser(user entity.User) (entity.User, error)
+	GetAllUsers() ([]dto.UserDTO, error)
+	CreateUser(user dto.UserDTO) (dto.UserDTO, error)
 	DeleteUser(id string) error
 	UpdateUserWaitStatus(id string) error
 	GetEstimatedWaitTime() (int, error)
