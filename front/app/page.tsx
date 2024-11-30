@@ -18,8 +18,10 @@ export default function Home() {
   >("");
   const [waitTime, setWaitTime] = useState<number | null>(null);
 
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
   const fetchUsers = async () => {
-    const res = await fetch("http://localhost:8080/api/users");
+    const res = await fetch(`${API_BASE_URL}/users`);
     const data = await res.json();
 
     const sortedData = data
@@ -35,22 +37,24 @@ export default function Home() {
   };
 
   const fetchWaitTime = async () => {
-    const res = await fetch("http://localhost:8080/api/wait-time");
+    const res = await fetch(`${API_BASE_URL}/wait-time`);
     const data = await res.json();
     setWaitTime(data.waitTime);
   };
 
   const addUser = async () => {
-    const res = await fetch("http://localhost:8080/api/users", {
+    const res = await fetch(`${API_BASE_URL}/users`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         name: newUserName,
-        numberPeople: newUserNumberPeople,
+        numberPeople: Number(newUserNumberPeople),
       }),
     });
+
+    console.log(res);
     if (res.ok) {
       setNewUserName("");
       setNewUserNumberPeople("");
@@ -60,7 +64,7 @@ export default function Home() {
   };
 
   const deleteUser = async (id: string) => {
-    const res = await fetch("http://localhost:8080/api/users", {
+    const res = await fetch(`${API_BASE_URL}/users`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -74,7 +78,7 @@ export default function Home() {
   };
 
   const updateUser = async (id: string) => {
-    const res = await fetch("http://localhost:8080/api/users", {
+    const res = await fetch(`${API_BASE_URL}/users`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
