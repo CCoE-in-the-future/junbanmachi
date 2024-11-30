@@ -24,7 +24,10 @@ func GenerateUUID() string {
 
 
 func (s *UserService) GetAllUsers() ([]dto.UserDTO, error) {
-	users, _ := s.userRepo.GetAllUsers()
+	users, err := s.userRepo.GetAllUsers()
+	if err != nil {
+		return nil, err
+	}
 
 	userDTOs := make([]dto.UserDTO, len(users))
 
@@ -41,7 +44,10 @@ func (s *UserService) CreateUser(userDTO dto.UserDTO) (dto.UserDTO, error) {
 	userDTO.ArrivalTime = time.Now()
 
 	user := s.convertToUser(userDTO)
-	newUser, _ := s.userRepo.CreateUser(user)
+	newUser, err := s.userRepo.CreateUser(user)
+	if err != nil {
+		return dto.UserDTO{}, err
+	}
 	newUserDTO := s.convertToUserDTO(newUser)
 
 	return newUserDTO, nil
@@ -57,7 +63,10 @@ func (s *UserService) UpdateUserWaitStatus(id string) error {
 }
 
 func (s *UserService) GetEstimatedWaitTime() (int, error) {
-	users, _ := s.userRepo.GetWaitingUsers()
+	users, err := s.userRepo.GetWaitingUsers()
+	if err != nil {
+		return 0, err
+	}
 	waitTime := 0
 	for _, user := range users {
 		waitTime += user.NumberPeople * 15

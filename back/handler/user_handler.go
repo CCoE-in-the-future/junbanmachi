@@ -22,6 +22,7 @@ func (h *UserHandler) GetAllUsers(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "Failed to fetch users",
+			"detail": err.Error(),
 		})
 	}
 	return c.JSON(http.StatusOK, users)
@@ -32,12 +33,14 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid input",
+			"detail": err.Error(),
 		})
 	}
 	createdUser, err := h.userService.CreateUser(user)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "Failed to create user",
+			"detail": err.Error(),
 		})
 	}
 	return c.JSON(http.StatusCreated, createdUser)
@@ -48,11 +51,13 @@ func (h *UserHandler) DeleteUser(c echo.Context) error {
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid input",
+			"detail": err.Error(),
 		})
 	}
 	if err := h.userService.DeleteUser(user.ID); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "Failed to delete user",
+			"detail": err.Error(),
 		})
 	}
 	return c.JSON(http.StatusOK, map[string]string{
@@ -65,11 +70,13 @@ func (h *UserHandler) UpdateUserWaitStatus(c echo.Context) error {
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{
 			"error": "Invalid input",
+			"detail": err.Error(),
 		})
 	}
 	if err := h.userService.UpdateUserWaitStatus(user.ID); err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "Failed to update user",
+			"detail": err.Error(),
 		})
 	}
 	return c.JSON(http.StatusOK, map[string]string{
@@ -82,6 +89,7 @@ func (h *UserHandler) GetEstimatedWaitTime(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{
 			"error": "Failed to calculate wait time",
+			"detail": err.Error(),
 		})
 	}
 	return c.JSON(http.StatusOK, map[string]int{
