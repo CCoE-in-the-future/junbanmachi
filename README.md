@@ -9,3 +9,7 @@
 - 利用者の更新
 - 利用者の削除
 - 待ち時間予測取得
+
+## AWS SAM CLI のインストール
+
+https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html
