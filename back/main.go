@@ -15,7 +15,6 @@ import (
 )
 
 func main() {
-	// AWS Session
 	sess := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String("ap-northeast-1"),
 	}))
@@ -25,17 +24,18 @@ func main() {
 	var userService service.UserServiceInterface = service.NewUserService(userRepo) 
 	var userHandler handler.UserHandlerInterface = handler.NewUserHandler(userService) 
 
-	// Echo instance
 	e := echo.New()
 	e.Use(middleware.CORS())
 
-	// Routes
 	e.GET("/api/users", userHandler.GetAllUsers)
 	e.POST("/api/users", userHandler.CreateUser)
 	e.DELETE("/api/users", userHandler.DeleteUser)
 	e.PUT("/api/users", userHandler.UpdateUserWaitStatus)
 	e.GET("/api/wait-time", userHandler.GetEstimatedWaitTime)
 
-	// Start server
+	e.GET("/", func(c echo.Context) error {
+		return c.String(200, "hello")
+	})
+	
 	log.Fatal(e.Start(":8080"))
 }
