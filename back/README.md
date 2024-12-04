@@ -8,7 +8,7 @@ https://go.dev/doc/install
 go run main.go
 ```
 
-## 開発環境に残っている Docker イメージを前削除する方法
+## 容量を空けるために開発環境に残っている Docker イメージを全削除する方法
 
 ```bash
 docker rmi -f $(docker images -q)
@@ -20,10 +20,13 @@ docker rmi -f $(docker images -q)
 sam build
 ```
 
-## ローカルでの Lambda テスト
+## [ローカルでの サーバー立ち上げ確認](https://docs.aws.amazon.com/ja_jp/serverless-application-model/latest/developerguide/using-sam-cli-local-start-lambda.html)
+
+AWS CLI または SDKs を使わないと呼び出すことが出来ない。
 
 ```bash
-sam local start-api
+ sam local lambda
+ aws lambda invoke --function-name "JunbanmachiFunction" --endpoint-url "http://127.0.0.1:3001" --no-verify-ssl out.txt
 ```
 
 ## SAM デプロイ
@@ -53,3 +56,4 @@ sam delete <stack-name>
 - [Go のプロジェクト構成](https://zenn.dev/nobonobo/articles/4fb018a24f9ee9)
 - [DTO](https://zenn.dev/7oh/articles/6338a8ccd470c7#%E3%83%AA%E3%83%9D%E3%82%B8%E3%83%88%E3%83%AA%E3%81%AE%E4%BD%9C%E6%88%90)
 - [Go Echo サーバーを SAM で公開する方法](https://zenn.dev/ryichk/articles/90d492d7874b1f#3.-sam%E3%81%AEtemplate.yaml%E3%82%92%E4%BD%9C%E6%88%90)
+- [AWS Lambda Function URLs と Amazon API Gateway の違い](https://serverless.co.jp/blog/j94zz_4-m/)

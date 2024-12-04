@@ -11,18 +11,13 @@ Resources:
   JunbanmachiFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
+      FunctionName: JunbanmachiFunction
+      CodeUri: .
       PackageType: Image
       Architectures:
         - x86_64
-      Events:
-        CatchAll:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-          Properties:
-            Path: /
-            Method: GET
-      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
-        Variables:
-          PARAM1: VALUE
+      FunctionUrlConfig:
+        AuthType: NONE
     Metadata:
       DockerTag: provided.al2023-v1
       DockerContext: .
@@ -41,13 +36,11 @@ Resources:
       ResourceGroupName:
         Ref: ApplicationResourceGroup
       AutoConfigurationEnabled: "true"
+
 Outputs:
-  JunbanmachiAPI:
-    Description: API Gateway endpoint URL for Prod environment for First Function
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  JunbanmachiURL:
+    Description: Lambda Function URLs for Prod environment for First Function
+    Value: !GetAtt JunbanmachiFunctionUrl.FunctionUrl
   JunbanmachiFunction:
     Description: First Lambda Function ARN
     Value: !GetAtt JunbanmachiFunction.Arn
-  JunbanmachiFunctionIamRole:
-    Description: Implicit IAM Role created for JunbanmachiFunction
-    Value: !GetAtt JunbanmachiFunctionIamRole.Arn

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -34,8 +35,14 @@ func main() {
 	e.GET("/api/wait-time", userHandler.GetEstimatedWaitTime)
 
 	e.GET("/", func(c echo.Context) error {
-		return c.String(200, "hello")
+		return c.String(200, "hello!")
 	})
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	address := ":" + port
 	
-	log.Fatal(e.Start(":8080"))
+	log.Fatal(e.Start(address))
 }
