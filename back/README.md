@@ -14,25 +14,22 @@ go run main.go
 docker rmi -f $(docker images -q)
 ```
 
+## キャッシュとビルドデータを全削除する方法
+
+```bash
+docker builder prune
+```
+
 ## ビルド
 
 ```bash
 sam build
 ```
 
-## [ローカルでの サーバー立ち上げ確認](https://docs.aws.amazon.com/ja_jp/serverless-application-model/latest/developerguide/using-sam-cli-local-start-lambda.html)
-
-AWS CLI または SDKs を使わないと呼び出すことが出来ない。
+## デプロイ
 
 ```bash
- sam local lambda
- aws lambda invoke --function-name "JunbanmachiFunction" --endpoint-url "http://127.0.0.1:3001" --no-verify-ssl out.txt
-```
-
-## SAM デプロイ
-
-```bash
-sam deploy --guided
+sam deploy --guided --capabilities CAPABILITY_NAMED_IAM
 ```
 
 The command will package and deploy your application to AWS, with a series of prompts:
@@ -54,6 +51,7 @@ sam delete <stack-name>
 ## 参考リンク
 
 - [Go のプロジェクト構成](https://zenn.dev/nobonobo/articles/4fb018a24f9ee9)
-- [DTO](https://zenn.dev/7oh/articles/6338a8ccd470c7#%E3%83%AA%E3%83%9D%E3%82%B8%E3%83%88%E3%83%AA%E3%81%AE%E4%BD%9C%E6%88%90)
+- [DTO とは](https://zenn.dev/7oh/articles/6338a8ccd470c7#%E3%83%AA%E3%83%9D%E3%82%B8%E3%83%88%E3%83%AA%E3%81%AE%E4%BD%9C%E6%88%90)
 - [Go Echo サーバーを SAM で公開する方法](https://zenn.dev/ryichk/articles/90d492d7874b1f#3.-sam%E3%81%AEtemplate.yaml%E3%82%92%E4%BD%9C%E6%88%90)
 - [AWS Lambda Function URLs と Amazon API Gateway の違い](https://serverless.co.jp/blog/j94zz_4-m/)
+- [API Gateway 挟むパターンでもパス全通しできる Lambda プロキシ統合](<https://zenn.dev/tkg216/articles/c9aede81c20a8e#%E3%83%97%E3%83%AD%E3%82%AD%E3%82%B7%E3%83%AA%E3%82%BD%E3%83%BC%E3%82%B9(%7Bproxy%2B%7D)%E3%81%AE%E6%9C%89%E7%84%A1%E3%81%A7%E6%AF%94%E8%BC%83%E8%BB%B8>)
