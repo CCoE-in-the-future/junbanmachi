@@ -176,11 +176,12 @@ func main() {
 	e.GET("/logout", handleLogout)
 
 	api := e.Group("/api")
-	api.Use(jwtMiddleware) 
+
+	api.POST("/users", userHandler.CreateUser, jwtMiddleware)
+	api.DELETE("/users", userHandler.DeleteUser, jwtMiddleware)
+	api.PUT("/users", userHandler.UpdateUserWaitStatus, jwtMiddleware)
+
 	api.GET("/users", userHandler.GetAllUsers)
-	api.POST("/users", userHandler.CreateUser)
-	api.DELETE("/users", userHandler.DeleteUser)
-	api.PUT("/users", userHandler.UpdateUserWaitStatus)
 	api.GET("/wait-time", userHandler.GetEstimatedWaitTime)
 
 	port := os.Getenv("PORT")
