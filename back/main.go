@@ -69,7 +69,7 @@ func init() {
 		ClientSecret: clientSecret,
 		RedirectURL:  redirectURL,
 		Endpoint:     provider.Endpoint(),
-		Scopes:       []string{oidc.ScopeOpenID, "email", "profile"},
+		Scopes:       []string{oidc.ScopeOpenID, "email", "openid"},
 	}
 	verifier = provider.Verifier(&oidc.Config{ClientID: clientID})
 }
@@ -137,7 +137,7 @@ func jwtMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		// トークンの検証
-		idToken, err := verifier.Verify(c.Request().Context(), tokenString) // echo.Contextを使う
+		idToken, err := verifier.Verify(c.Request().Context(), tokenString) 
 		if err != nil {
 			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token", "details": err.Error()})
 		}
