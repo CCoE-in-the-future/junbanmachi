@@ -88,6 +88,11 @@ func handleCallback(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing code parameter"})
 	}
 
+	redirectURI := c.QueryParam("redirect_uri")
+	if redirectURI == "" {
+		redirectURI = "http://localhost:3000/admin" // デフォルトで/adminにリダイレクト
+	}
+
 	// トークン取得
 	token, err := oauth2Config.Exchange(c.Request().Context(), code) // echo.Contextを使う
 	if err != nil {
@@ -110,11 +115,19 @@ func handleCallback(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to parse claims"})
 	}
 
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"accessToken": token.AccessToken,
-		"idToken":     rawIDToken,
-		"claims":      claims,
-	})
+	// アクセストークンをクッキーに保存
+	cookie := &http.Cookie{
+		Name:     "access_token_test", // クッキー名
+		Value:    token.AccessToken, // アクセストークン
+		Path:     "/",  // クッキーの有効範囲
+		HttpOnly: true, // JavaScriptからアクセス不可にする（セキュリティ強化）
+		Secure:   true, // HTTPSを使用する場合はtrueに設定
+		SameSite: http.SameSiteStrictMode, // クロスサイトリクエストを防ぐ
+	}
+	http.SetCookie(c.Response().Writer, cookie)
+
+	// 認証後にリダイレクト
+	return c.Redirect(http.StatusFound, redirectURI)
 }
 
 // /logout: ログアウト処理
