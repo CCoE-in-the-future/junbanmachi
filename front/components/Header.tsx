@@ -1,33 +1,29 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Header() {
-  const [isSignedIn, setIsSignedIn] = useState(false);
   const router = useRouter();
 
-  const handleSignIn = () => {
-    setIsSignedIn(true);
-    alert("サインインしました！");
-    router.push("/admin");
-  };
+  const handleSignIn = async () => {
+    try {
+      // バックエンドの /login エンドポイントにリクエストを送信
+      window.location.href = "http://localhost:8080/login"; // サーバー側でリダイレクト処理を行う
+    } catch (error) {
+      console.error("サインイン中にエラーが発生しました:", error);
+      alert("サインイン中に問題が発生しました。");
+    }
 
-  const handleSignOut = () => {
-    setIsSignedIn(false);
-    alert("サインアウトしました！");
-    router.push("/");
+    router.push("/admin");
   };
 
   return (
     <header className="flex justify-between items-center mb-8">
       <button
-        onClick={isSignedIn ? handleSignOut : handleSignIn}
-        className={`px-4 py-2 rounded ${
-          isSignedIn ? "bg-red-500 text-white" : "bg-green-500 text-white"
-        }`}
+        onClick={handleSignIn}
+        className={"px-4 py-2 rounded bg-green-500 text-white"}
       >
-        {isSignedIn ? "サインアウト" : "サインイン"}
+        管理者サインイン
       </button>
     </header>
   );
