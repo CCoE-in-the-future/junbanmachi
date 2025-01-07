@@ -117,12 +117,11 @@ func handleCallback(c echo.Context) error {
 
 	// アクセストークンをクッキーに保存
 	cookie := &http.Cookie{
-		Name:     "access_token_test", // クッキー名
-		Value:    token.AccessToken, // アクセストークン
+		Name:     "id_token", // クッキー名
+		Value:    rawIDToken, // アクセストークン
 		Path:     "/",  // クッキーの有効範囲
-		HttpOnly: true, // JavaScriptからアクセス不可にする（セキュリティ強化）
-		Secure:   true, // HTTPSを使用する場合はtrueに設定
-		SameSite: http.SameSiteStrictMode, // クロスサイトリクエストを防ぐ
+		HttpOnly: false, // JavaScriptからアクセス不可にする（セキュリティ強化）
+		Secure:   false, // HTTPSを使用する場合はtrueに設定
 	}
 	http.SetCookie(c.Response().Writer, cookie)
 
@@ -132,7 +131,11 @@ func handleCallback(c echo.Context) error {
 
 // /logout: ログアウト処理
 func handleLogout(c echo.Context) error {
-	return c.Redirect(http.StatusFound, "/")
+		redirectURI := c.QueryParam("redirect_uri")
+	if redirectURI == "" {
+		redirectURI = "http://localhost:3000"
+	}
+	return c.Redirect(http.StatusFound, redirectURI)
 }
 
 // JWT ミドルウェア
@@ -167,6 +170,38 @@ func jwtMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+func handleAuthStatus(c echo.Context) error {
+	// Authorization ヘッダーを取得
+	authHeader := c.Request().Header.Get("Authorization")
+	if authHeader == "" {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Missing Authorization header"})
+	}
+
+	// Bearer トークンを抽出
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	if tokenString == authHeader {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid Authorization header format"})
+	}
+
+	// トークンの検証
+	idToken, err := verifier.Verify(c.Request().Context(), tokenString)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token", "details": err.Error()})
+	}
+
+	// クレームを取得
+	var claims map[string]interface{}
+	if err := idToken.Claims(&claims); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to parse claims"})
+	}
+
+	// 認証状態を返す
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"status": "authenticated",
+		"claims": claims,
+	})
+}
+
 func main() {
 	sess := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String("ap-northeast-1"),
@@ -184,11 +219,12 @@ func main() {
 		return c.String(200, "hello!")
 	})
 
-	e.GET("/login", handleLogin)
-	e.GET("/callback", handleCallback)
-	e.GET("/logout", handleLogout)
-
 	api := e.Group("/api")
+
+	api.GET("/login", handleLogin)
+	api.GET("/callback", handleCallback)
+	api.GET("/logout", handleLogout)
+	api.GET("/auth-status", handleAuthStatus)
 
 	api.POST("/users", userHandler.CreateUser, jwtMiddleware)
 	api.DELETE("/users", userHandler.DeleteUser, jwtMiddleware)
