@@ -1,20 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 export default function Header() {
-  const router = useRouter();
-
   const handleSignIn = async () => {
     try {
       // バックエンドの /login エンドポイントにリクエストを送信
-      window.location.href = "http://localhost:8080/login"; // サーバー側でリダイレクト処理を行う
+      window.location.href = "http://localhost:8080/api/login"; // サーバー側でリダイレクト処理を行う
     } catch (error) {
       console.error("サインイン中にエラーが発生しました:", error);
       alert("サインイン中に問題が発生しました。");
     }
-
-    router.push("/admin");
   };
 
   return (

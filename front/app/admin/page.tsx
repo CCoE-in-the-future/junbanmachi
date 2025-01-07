@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import HeaderAdmin from "@/components/HeaderAdmin";
 import UserForm from "@/components/UserForm";
 import UserListAdmin from "@/components/UserListAdmin";
@@ -7,8 +9,58 @@ import WaitTimeDisplay from "@/components/WaitTimeDisplay";
 import { useUsers } from "@/hooks/useUsers";
 
 export default function Home() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
   const { users, waitTime, handleAddUser, handleDeleteUser, handleUpdateUser } =
     useUsers();
+
+  useEffect(() => {
+    const checkAuthState = async () => {
+      try {
+        // クッキーから access_token を取得
+        const token = document.cookie
+          .split("; ")
+          .find((row) => row.startsWith("id_token="))
+          ?.split("=")[1];
+
+        if (!token) {
+          throw new Error("Access token not found");
+        }
+
+        const response = await fetch("http://localhost:8080/api/auth-status", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to authenticate");
+        }
+
+        const data = await response.json();
+
+        if (data.status === "authenticated") {
+          setIsAuthenticated(true);
+        } else {
+          throw new Error("Not authenticated");
+        }
+      } catch (error) {
+        console.error("Authentication error:", error);
+        router.push("/"); // ログインページにリダイレクト
+      }
+    };
+
+    checkAuthState();
+  }, [router]);
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-xl font-bold text-gray-700">読み込み中...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 max-w-lg">

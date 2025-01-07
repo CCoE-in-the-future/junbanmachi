@@ -1,13 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 export default function HeaderAdmin() {
-  const router = useRouter();
-
   const handleSignOut = () => {
-    alert("サインアウトしました！");
-    router.push("/");
+    try {
+      // バックエンドの /login エンドポイントにリクエストを送信
+      window.location.href = "http://localhost:8080/api/logout"; // サーバー側でリダイレクト処理を行う
+    } catch (error) {
+      console.error("サインアウト中にエラーが発生しました:", error);
+      alert("サインアウト中に問題が発生しました。");
+    }
   };
 
   return (
