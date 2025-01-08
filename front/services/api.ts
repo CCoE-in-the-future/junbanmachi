@@ -10,6 +10,7 @@ export async function addUser(data: { name: string; numberPeople: number }) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
+    credentials: "include",
   });
 }
 
@@ -18,6 +19,7 @@ export async function deleteUser(id: string) {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id }),
+    credentials: "include",
   });
 }
 
@@ -26,6 +28,7 @@ export async function updateUser(id: string) {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id }),
+    credentials: "include",
   });
 }
 

@@ -17,21 +17,9 @@ export default function Home() {
   useEffect(() => {
     const checkAuthState = async () => {
       try {
-        // クッキーから access_token を取得
-        const token = document.cookie
-          .split("; ")
-          .find((row) => row.startsWith("id_token="))
-          ?.split("=")[1];
-
-        if (!token) {
-          throw new Error("Access token not found");
-        }
-
         const response = await fetch("http://localhost:8080/api/auth-status", {
           method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          credentials: "include",
         });
 
         if (!response.ok) {

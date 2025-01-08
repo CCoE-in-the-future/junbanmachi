@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -120,7 +119,7 @@ func handleCallback(c echo.Context) error {
 		Name:     "id_token", // クッキー名
 		Value:    rawIDToken, // アクセストークン
 		Path:     "/",  // クッキーの有効範囲
-		HttpOnly: false, // JavaScriptからアクセス不可にする（セキュリティ強化）
+		HttpOnly: true, // JavaScriptからアクセス不可にする（セキュリティ強化）
 		Secure:   false, // HTTPSを使用する場合はtrueに設定
 	}
 	http.SetCookie(c.Response().Writer, cookie)
@@ -141,19 +140,14 @@ func handleLogout(c echo.Context) error {
 // JWT ミドルウェア
 func jwtMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		authHeader := c.Request().Header.Get("Authorization")
-		if authHeader == "" {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Missing Authorization header"})
-		}
-
-		// Bearer トークンを抽出
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-		if tokenString == authHeader {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid Authorization header format"})
+		// Cookie からトークンを取得
+		cookie, err := c.Cookie("id_token")
+		if err != nil {
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Missing id_token cookie"})
 		}
 
 		// トークンの検証
-		idToken, err := verifier.Verify(c.Request().Context(), tokenString) 
+		idToken, err := verifier.Verify(c.Request().Context(), cookie.Value)
 		if err != nil {
 			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token", "details": err.Error()})
 		}
@@ -171,20 +165,14 @@ func jwtMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 }
 
 func handleAuthStatus(c echo.Context) error {
-	// Authorization ヘッダーを取得
-	authHeader := c.Request().Header.Get("Authorization")
-	if authHeader == "" {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Missing Authorization header"})
-	}
-
-	// Bearer トークンを抽出
-	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-	if tokenString == authHeader {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid Authorization header format"})
+	// Cookie からトークンを取得
+	cookie, err := c.Cookie("id_token")
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Missing id_token cookie"})
 	}
 
 	// トークンの検証
-	idToken, err := verifier.Verify(c.Request().Context(), tokenString)
+	idToken, err := verifier.Verify(c.Request().Context(), cookie.Value)
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token", "details": err.Error()})
 	}
@@ -195,7 +183,6 @@ func handleAuthStatus(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to parse claims"})
 	}
 
-	// 認証状態を返す
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"status": "authenticated",
 		"claims": claims,
@@ -213,8 +200,12 @@ func main() {
 	var userHandler handler.UserHandlerInterface = handler.NewUserHandler(userService) 
 
 	e := echo.New()
-	e.Use(middleware.CORS())
-
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:     []string{"http://localhost:3000"}, // フロントエンドのURL
+		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
+		AllowHeaders:     []string{"Content-Type", "Authorization"}, // 必要なヘッダーを指定
+		AllowCredentials: true, // Cookieを含める場合はtrue
+	}))
 	e.GET("/", func(c echo.Context) error {
 		return c.String(200, "hello!")
 	})
