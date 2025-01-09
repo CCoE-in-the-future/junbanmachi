@@ -35,7 +35,7 @@ export default function Home() {
         }
       } catch (error) {
         console.error("Authentication error:", error);
-        router.push("/"); // ログインページにリダイレクト
+        router.push("/");
       }
     };
 
