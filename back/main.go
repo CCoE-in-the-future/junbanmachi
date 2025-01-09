@@ -19,6 +19,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"back/handler"
+	"back/jwtMiddleware"
 	"back/repository"
 	"back/service"
 )
@@ -73,121 +74,6 @@ func init() {
 	verifier = provider.Verifier(&oidc.Config{ClientID: clientID})
 }
 
-// /login: Cognito 認証ページにリダイレクト
-func handleLogin(c echo.Context) error {
-	state := "random_state"
-	url := oauth2Config.AuthCodeURL(state, oauth2.AccessTypeOffline)
-	return c.Redirect(http.StatusFound, url)
-}
-
-// /callback: 認証後の処理
-func handleCallback(c echo.Context) error {
-	code := c.QueryParam("code")
-	if code == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Missing code parameter"})
-	}
-
-	redirectURI := c.QueryParam("redirect_uri")
-	if redirectURI == "" {
-		redirectURI = "http://localhost:3000/admin" // デフォルトで/adminにリダイレクト
-	}
-
-	// トークン取得
-	token, err := oauth2Config.Exchange(c.Request().Context(), code) // echo.Contextを使う
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to exchange token", "details": err.Error()})
-	}
-
-	// ID トークンの検証
-	rawIDToken, ok := token.Extra("id_token").(string)
-	if !ok {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "No id_token in token response"})
-	}
-	idToken, err := verifier.Verify(c.Request().Context(), rawIDToken) // echo.Contextを使う
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid ID token"})
-	}
-
-	// クレームを取得
-	var claims map[string]interface{}
-	if err := idToken.Claims(&claims); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to parse claims"})
-	}
-
-	// アクセストークンをクッキーに保存
-	cookie := &http.Cookie{
-		Name:     "id_token", // クッキー名
-		Value:    rawIDToken, // アクセストークン
-		Path:     "/",  // クッキーの有効範囲
-		HttpOnly: true, // JavaScriptからアクセス不可にする（セキュリティ強化）
-		Secure:   false, // HTTPSを使用する場合はtrueに設定
-	}
-	http.SetCookie(c.Response().Writer, cookie)
-
-	// 認証後にリダイレクト
-	return c.Redirect(http.StatusFound, redirectURI)
-}
-
-// /logout: ログアウト処理
-func handleLogout(c echo.Context) error {
-		redirectURI := c.QueryParam("redirect_uri")
-	if redirectURI == "" {
-		redirectURI = "http://localhost:3000"
-	}
-	return c.Redirect(http.StatusFound, redirectURI)
-}
-
-// JWT ミドルウェア
-func jwtMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		// Cookie からトークンを取得
-		cookie, err := c.Cookie("id_token")
-		if err != nil {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Missing id_token cookie"})
-		}
-
-		// トークンの検証
-		idToken, err := verifier.Verify(c.Request().Context(), cookie.Value)
-		if err != nil {
-			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token", "details": err.Error()})
-		}
-
-		// クレームを取得
-		var claims map[string]interface{}
-		if err := idToken.Claims(&claims); err != nil {
-			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to parse claims"})
-		}
-
-		// コンテキストにユーザー情報をセット
-		c.Set("user", claims)
-		return next(c)
-	}
-}
-
-func handleAuthStatus(c echo.Context) error {
-	// Cookie からトークンを取得
-	cookie, err := c.Cookie("id_token")
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Missing id_token cookie"})
-	}
-
-	// トークンの検証
-	idToken, err := verifier.Verify(c.Request().Context(), cookie.Value)
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Invalid token", "details": err.Error()})
-	}
-
-	// クレームを取得
-	var claims map[string]interface{}
-	if err := idToken.Claims(&claims); err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to parse claims"})
-	}
-
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"status": "authenticated",
-		"claims": claims,
-	})
-}
 
 func main() {
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -198,6 +84,7 @@ func main() {
 	var userRepo service.UserRepositoryInterface = repository.NewUserRepository(db, "junbanmachi-table")
 	var userService service.UserServiceInterface = service.NewUserService(userRepo) 
 	var userHandler handler.UserHandlerInterface = handler.NewUserHandler(userService) 
+	var authHandler = handler.NewAuthHandler(&oauth2Config, verifier)
 
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -212,14 +99,14 @@ func main() {
 
 	api := e.Group("/api")
 
-	api.GET("/login", handleLogin)
-	api.GET("/callback", handleCallback)
-	api.GET("/logout", handleLogout)
-	api.GET("/auth-status", handleAuthStatus)
+	api.GET("/login", authHandler.HandleLogin)
+	api.GET("/callback", authHandler.HandleCallback)
+	api.GET("/logout", authHandler.HandleLogout)
+	api.GET("/auth-status", authHandler.HandleAuthStatus)
 
-	api.POST("/users", userHandler.CreateUser, jwtMiddleware)
-	api.DELETE("/users", userHandler.DeleteUser, jwtMiddleware)
-	api.PUT("/users", userHandler.UpdateUserWaitStatus, jwtMiddleware)
+	api.POST("/users", userHandler.CreateUser, jwtMiddleware.JwtMiddleware(verifier))
+	api.DELETE("/users", userHandler.DeleteUser, jwtMiddleware.JwtMiddleware(verifier))
+	api.PUT("/users", userHandler.UpdateUserWaitStatus, jwtMiddleware.JwtMiddleware(verifier))
 
 	api.GET("/users", userHandler.GetAllUsers)
 	api.GET("/wait-time", userHandler.GetEstimatedWaitTime)
