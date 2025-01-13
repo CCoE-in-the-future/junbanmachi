@@ -5,7 +5,7 @@ https://go.dev/doc/install
 ## 開発環境でのサーバー立ち上げ
 
 ```bash
-go run main.go
+GO_ENV=development go run main.go
 ```
 
 ## 容量を空けるために開発環境に残っている Docker イメージを全削除する方法

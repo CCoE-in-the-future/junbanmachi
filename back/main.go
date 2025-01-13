@@ -47,6 +47,18 @@ func init() {
         log.Println("No .env file found")
     }
 
+	env := os.Getenv("GO_ENV") // 環境変数 GO_ENV を取得
+	if env == "" {
+		env = "development" // デフォルトは開発環境
+	}
+
+	// 環境ごとの .env ファイルをロード
+	envFile := ".env." + env
+	if err := godotenv.Load(envFile); err != nil {
+		log.Printf("No %s file found, using default .env", envFile)
+		godotenv.Load() // デフォルトの .env をロード
+	}
+	
 	// 環境変数から値を取得
 	clientID = os.Getenv("COGNITO_CLIENT_ID")
 	clientSecret = os.Getenv("COGNITO_CLIENT_SECRET")

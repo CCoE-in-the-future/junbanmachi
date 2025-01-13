@@ -19,7 +19,7 @@ export function useUsers() {
   const fetchData = async () => {
     const userData = await getUsers();
     const sortedUsers = userData.sort(
-      (a, b) =>
+      (a: User, b: User) =>
         new Date(a.arrivalTime).getTime() - new Date(b.arrivalTime).getTime()
     );
     setUsers(sortedUsers);
