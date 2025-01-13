@@ -34,6 +34,7 @@ var (
 	clientSecret string
 	redirectURL  string
 	issuerURL    string
+	allowFrontURL string
 	provider     *oidc.Provider
 	verifier     *oidc.IDTokenVerifier
 	oauth2Config oauth2.Config
@@ -51,9 +52,10 @@ func init() {
 	clientSecret = os.Getenv("COGNITO_CLIENT_SECRET")
 	redirectURL = os.Getenv("COGNITO_REDIRECT_URL")
 	issuerURL = os.Getenv("COGNITO_ISSUER_URL")
+	allowFrontURL = os.Getenv("ALLOW_FRONT_URL")
 
 	// 必須環境変数のチェック
-	if clientID == "" || clientSecret == "" || redirectURL == "" || issuerURL == "" {
+	if clientID == "" || clientSecret == "" || redirectURL == "" || issuerURL == "" || allowFrontURL == ""{
 		log.Fatalf("One or more required environment variables are missing")
 	}
 	
@@ -88,7 +90,7 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"http://localhost:3000"}, // フロントエンドのURL
+		AllowOrigins:     []string{allowFrontURL}, // フロントエンドのURL
 		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
 		AllowHeaders:     []string{"Content-Type", "Authorization"}, // 必要なヘッダーを指定
 		AllowCredentials: true, // Cookieを含める場合はtrue
