@@ -42,6 +42,9 @@ Resources:
       FunctionUrlConfig:
         AuthType: NONE
       Role: !GetAtt JunbanmachiFunctionRole.Arn
+      Environment:
+        Variables:
+          GO_ENV: production
     Metadata:
       DockerTag: provided.al2023-v1
       DockerContext: .
