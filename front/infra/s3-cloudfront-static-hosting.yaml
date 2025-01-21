@@ -83,7 +83,7 @@ Resources:
             Resource: !Sub "${S3Bucket.Arn}/*"
             Condition:
               StringEquals:
-                AWS:SourceArn: !GetAtt CloudFrontDistribution.Arn
+                AWS:SourceAccount: !Ref "AWS::AccountId"
 
 Outputs:
   CloudFrontDomainName:
