@@ -56,7 +56,7 @@ func init() {
 	envFile := ".env." + env
 	if err := godotenv.Load(envFile); err != nil {
 		log.Printf("No %s file found, using default .env", envFile)
-		godotenv.Load() // デフォルトの .env をロード
+		godotenv.Load()
 	}
 	
 	// 環境変数から値を取得
