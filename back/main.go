@@ -98,7 +98,7 @@ func main() {
 	var userRepo service.UserRepositoryInterface = repository.NewUserRepository(db, "junbanmachi-table")
 	var userService service.UserServiceInterface = service.NewUserService(userRepo) 
 	var userHandler handler.UserHandlerInterface = handler.NewUserHandler(userService) 
-	var authHandler = handler.NewAuthHandler(&oauth2Config, verifier)
+	var authHandler = handler.NewAuthHandler(&oauth2Config, verifier, allowFrontURL)
 
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{

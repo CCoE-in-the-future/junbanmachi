@@ -11,12 +11,14 @@ import (
 type AuthHandler struct {
 	OAuth2Config *oauth2.Config
 	Verifier     *oidc.IDTokenVerifier
+	AllowFrontURL string
 }
 
-func NewAuthHandler(oauth2Config *oauth2.Config, verifier *oidc.IDTokenVerifier) *AuthHandler {
+func NewAuthHandler(oauth2Config *oauth2.Config, verifier *oidc.IDTokenVerifier, allowFrontURL string) *AuthHandler {
 	return &AuthHandler{
 		OAuth2Config: oauth2Config,
 		Verifier:     verifier,
+		AllowFrontURL: allowFrontURL,
 	}
 }
 
@@ -34,7 +36,7 @@ func (h *AuthHandler) HandleCallback(c echo.Context) error {
 
 	redirectURI := c.QueryParam("redirect_uri")
 	if redirectURI == "" {
-		redirectURI = "http://localhost:3000/admin"
+		redirectURI = h.AllowFrontURL + "/admin"
 	}
 
 	token, err := h.OAuth2Config.Exchange(c.Request().Context(), code)
