@@ -9,8 +9,6 @@ RUN GOOS=linux CGO_ENABLED=0 go build -o bootstrap ./
 FROM alpine:3.9
 RUN apk add ca-certificates
 
-ENV GO_ENV production
-
 COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.8.4 /lambda-adapter /opt/extensions/lambda-adapter
 COPY --from=build_base /bootstrap /bootstrap
 
