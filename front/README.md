@@ -15,7 +15,7 @@ npm run dev
 npm run build
 ```
 
-## 本番サーバー立ち上げ
+## 開発環境で本番サーバー立ち上げ
 
 ```bash
 npx serve@latest out
