@@ -30,7 +30,7 @@ aws cloudformation create-stack --stack-name <stack-name> --template-body file:/
 ## デプロイ(S3 にビルドファイル配置)
 
 ```bash
-aws s3 sync ./out s3://<s3-bucket-name>/
+aws s3 sync ./out s3://<s3-bucket-name>
 ```
 
 ## 参考リンク
