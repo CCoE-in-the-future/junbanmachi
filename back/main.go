@@ -43,10 +43,6 @@ var (
 // 初期化処理
 func init() {
 
-	if err := godotenv.Load(); err != nil {
-        log.Println("No .env file found")
-    }
-
 	env := os.Getenv("GO_ENV") // 環境変数 GO_ENV を取得
 	if env == "" {
 		env = "development" // デフォルトは開発環境
