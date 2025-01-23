@@ -8,6 +8,8 @@ import UserListAdmin from "@/components/UserListAdmin";
 import WaitTimeDisplay from "@/components/WaitTimeDisplay";
 import { useUsers } from "@/hooks/useUsers";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
@@ -17,7 +19,7 @@ export default function Home() {
   useEffect(() => {
     const checkAuthState = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/auth-status", {
+        const response = await fetch(`${API_BASE_URL}/auth-status`, {
           method: "GET",
           credentials: "include",
         });
