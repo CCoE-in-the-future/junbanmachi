@@ -30,9 +30,16 @@ Resources:
                   - dynamodb:DeleteItem
                   - dynamodb:Scan
                 Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/junbanmachi-table"
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/JunbanmachiFunction:*"
 
   JunbanmachiFunction:
     Type: AWS::Serverless::Function
+    DependsOn: JunbanmachiLogGroup
     Properties:
       FunctionName: JunbanmachiFunction
       CodeUri: .
@@ -49,6 +56,12 @@ Resources:
       DockerTag: provided.al2023-v1
       DockerContext: .
       Dockerfile: Dockerfile
+
+  JunbanmachiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/JunbanmachiFunction
+      RetentionInDays: 1
 
 Outputs:
   JunbanmachiURL:
