@@ -65,6 +65,7 @@ func (h *AuthHandler) HandleCallback(c echo.Context) error {
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   false,
+		SameSite: http.SameSiteNoneMode,
 	}
 	http.SetCookie(c.Response().Writer, cookie)
 
