@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  Create an S3 bucket for hosting a static website with public access
+
+Parameters:
+  SystemName:
+    Description: System Name
+    Type: String
+    Default: junbanmachi
+
+Resources:
+  #-----------------------------------------------------------------------------
+  # S3 bucket with static website hosting
+  #-----------------------------------------------------------------------------
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${SystemName}-bucket"
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+      PublicAccessBlockConfiguration: # Block Public Access 設定を無効化
+        BlockPublicAcls: false
+        IgnorePublicAcls: false
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${SystemName}-bucket"
+
+  #-----------------------------------------------------------------------------
+  # S3 Bucket Policy for public access
+  #-----------------------------------------------------------------------------
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub "${S3Bucket.Arn}/*"
+
+Outputs:
+  WebsiteURL:
+    Value: !Sub "${S3Bucket.WebsiteURL}"
+    Export:
+      Name: !Sub "${SystemName}-website-url"
