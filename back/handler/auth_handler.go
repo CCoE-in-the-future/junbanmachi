@@ -12,13 +12,15 @@ type AuthHandler struct {
 	OAuth2Config *oauth2.Config
 	Verifier     *oidc.IDTokenVerifier
 	AllowFrontURL string
+	Environment string
 }
 
-func NewAuthHandler(oauth2Config *oauth2.Config, verifier *oidc.IDTokenVerifier, allowFrontURL string) *AuthHandler {
+func NewAuthHandler(oauth2Config *oauth2.Config, verifier *oidc.IDTokenVerifier, allowFrontURL string, environment string) *AuthHandler {
 	return &AuthHandler{
 		OAuth2Config: oauth2Config,
 		Verifier:     verifier,
 		AllowFrontURL: allowFrontURL,
+		Environment: environment,
 	}
 }
 
@@ -59,12 +61,14 @@ func (h *AuthHandler) HandleCallback(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to parse claims"})
 	}
 
+	secureFlag := h.Environment == "production"
+
 	cookie := &http.Cookie{
 		Name:     "id_token",
 		Value:    rawIDToken,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   false,
+		Secure:   secureFlag,
 		SameSite: http.SameSiteNoneMode,
 	}
 	http.SetCookie(c.Response().Writer, cookie)

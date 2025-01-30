@@ -38,12 +38,13 @@ var (
 	provider     *oidc.Provider
 	verifier     *oidc.IDTokenVerifier
 	oauth2Config oauth2.Config
+	env string
 )
 
 // 初期化処理
 func init() {
 
-	env := os.Getenv("GO_ENV") // 環境変数 GO_ENV を取得
+	env = os.Getenv("GO_ENV") // 環境変数 GO_ENV を取得
 	if env == "" {
 		env = "development" // デフォルトは開発環境
 	}
@@ -94,7 +95,7 @@ func main() {
 	var userRepo service.UserRepositoryInterface = repository.NewUserRepository(db, "junbanmachi-table")
 	var userService service.UserServiceInterface = service.NewUserService(userRepo) 
 	var userHandler handler.UserHandlerInterface = handler.NewUserHandler(userService) 
-	var authHandler = handler.NewAuthHandler(&oauth2Config, verifier, allowFrontURL)
+	var authHandler = handler.NewAuthHandler(&oauth2Config, verifier, allowFrontURL, env)
 
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
