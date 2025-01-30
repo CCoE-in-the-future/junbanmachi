@@ -21,18 +21,6 @@ npm run build
 npx serve@latest out
 ```
 
-## 静的ホスティング用の S3 スタックデプロイ
-
-```bash
-aws cloudformation create-stack --stack-name junbanmachi-front-app --template-body file://infra/s3-static-hosting.yaml
-```
-
-## デプロイ(S3 にビルドファイル配置)
-
-```bash
-aws s3 sync ./out s3://junbanmachi-bucket
-```
-
 ## 参考リンク
 
 - [Nextjs を SAM で公開する方法](https://github.com/awslabs/aws-lambda-web-adapter/tree/main/examples/nextjs)
