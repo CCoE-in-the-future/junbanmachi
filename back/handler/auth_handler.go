@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/coreos/go-oidc"
 	"github.com/labstack/echo/v4"
@@ -22,6 +23,14 @@ func NewAuthHandler(oauth2Config *oauth2.Config, verifier *oidc.IDTokenVerifier,
 		AllowFrontURL: allowFrontURL,
 		Environment: environment,
 	}
+}
+
+// SameSite のモードを環境変数で切り替える関数
+func getSameSiteMode(env string) http.SameSite {
+    if env == "production" {
+        return http.SameSiteNoneMode // https の場合
+    }
+    return http.SameSiteLaxMode // http の場合
 }
 
 func (h *AuthHandler) HandleLogin(c echo.Context) error {
@@ -61,15 +70,13 @@ func (h *AuthHandler) HandleCallback(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to parse claims"})
 	}
 
-	secureFlag := h.Environment == "production"
-
 	cookie := &http.Cookie{
 		Name:     "id_token",
 		Value:    rawIDToken,
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   secureFlag,
-		SameSite: http.SameSiteNoneMode,
+		Secure:   h.Environment == "production",
+		SameSite: getSameSiteMode(h.Environment),
 	}
 	http.SetCookie(c.Response().Writer, cookie)
 
@@ -77,6 +84,20 @@ func (h *AuthHandler) HandleCallback(c echo.Context) error {
 }
 
 func (h *AuthHandler) HandleLogout(c echo.Context) error {
+	
+	cookie := &http.Cookie{
+		Name:     "id_token",
+		Value:    "",
+		Path:     "/",               // クッキーの適用範囲を統一
+		HttpOnly: true,              // クッキーのセキュリティを保持
+		Secure:   h.Environment == "production", // 本番環境ならSecureを有効化
+		SameSite: http.SameSiteNoneMode, // SameSiteポリシーを維持
+		MaxAge:   -1,               // クッキーを即時無効化
+		Expires:  time.Unix(0, 0),  // 有効期限を過去に設定
+	}
+	http.SetCookie(c.Response().Writer, cookie)
+	
+	
 	redirectURI := c.QueryParam("redirect_uri")
 	if redirectURI == "" {
 		redirectURI = "http://localhost:3000"

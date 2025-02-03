@@ -49,6 +49,8 @@ func init() {
 		env = "development" // デフォルトは開発環境
 	}
 
+	log.Printf("env: %s", env)
+
 	// 環境ごとの .env ファイルをロード
 	envFile := "env." + env
 	if err := godotenv.Load(envFile); err != nil {
