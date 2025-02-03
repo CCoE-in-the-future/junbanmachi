@@ -7,7 +7,7 @@ export default function HeaderAdmin() {
   const handleSignOut = () => {
     try {
       // バックエンドの /login エンドポイントにリクエストを送信
-      window.location.href = `${API_BASE_URL}/logout?redirect_url=${REDIRECT_URL}`; // サーバー側でリダイレクト処理を行う
+      window.location.href = `${API_BASE_URL}/logout?redirect_uri=${REDIRECT_URL}`; // サーバー側でリダイレクト処理を行う
     } catch (error) {
       console.error("サインアウト中にエラーが発生しました:", error);
       alert("サインアウト中に問題が発生しました。");
